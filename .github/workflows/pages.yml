@@ -1,4 +1,4 @@
-name: Publicar PhysioMap
+name: Publicar ActivAnatomy
 
 on:
   push:
@@ -25,9 +25,9 @@ jobs:
         uses: actions/checkout@v6
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
-      - name: Ativar mapa anatômico detalhado
+      - name: Ativar mapa e leitor estável
         run: |
-          sed -i 's#</body>#<script src="anatomy-map.js"></script></body>#' index.html
+          sed -i 's#</body>#<script src="anatomy-map.js"></script><script src="parser-fix.js"></script></body>#' index.html
       - name: Preparar site
         uses: actions/upload-pages-artifact@v4
         with:
