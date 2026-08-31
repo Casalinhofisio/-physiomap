@@ -1,9 +1,8 @@
 // PhysioMap: exibe TODOS os achados bilaterais do PDF no boneco.
 // Regra visual: <=10% = ambos verdes; 10-20% = forte verde / fraco amarelo; >20% = forte verde / fraco vermelho.
-// Quando dois testes usam a mesma região, nenhum achado some: cada teste recebe um marcador numerado no músculo.
+// Sem números/marcadores sobre o boneco: apenas as cores musculares.
 
 (function(){
-  const ns='http://www.w3.org/2000/svg';
   const originalReset = resetBody;
 
   resetBody = function(){
@@ -18,41 +17,16 @@
     return side===weak?z:'green';
   }
 
-  function addMarker(id,z,num,slot){
-    const el=document.getElementById(id);
-    if(!el) return;
-    const svg=el.ownerSVGElement, box=el.getBBox();
-    const x=box.x+box.width/2+(slot%2?7:-7);
-    const y=box.y+box.height/2+Math.floor(slot/2)*13;
-    const c=document.createElementNS(ns,'circle');
-    c.setAttribute('class','finding-marker');
-    c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',8);
-    c.setAttribute('fill',COLORS[z]); c.setAttribute('stroke','#fff'); c.setAttribute('stroke-width','1.8');
-    const tx=document.createElementNS(ns,'text');
-    tx.setAttribute('class','finding-number');
-    tx.setAttribute('x',x); tx.setAttribute('y',y+.5);
-    tx.setAttribute('fill','#fff'); tx.setAttribute('font-size','9'); tx.setAttribute('font-weight','900');
-    tx.setAttribute('text-anchor','middle'); tx.setAttribute('dominant-baseline','middle');
-    tx.textContent=String(num);
-    svg.append(c,tx);
-  }
-
   paintTests = function(tests){
     resetBody();
-    const chosen={}, rank={green:1,yellow:2,red:3}, slots={};
+    const chosen={}, rank={green:1,yellow:2,red:3};
     const apply=(ids,z)=>{for(const id of ids){if(!chosen[id]||rank[z]>rank[chosen[id]])chosen[id]=z;}};
 
-    tests.forEach((t,i)=>{
+    tests.forEach(t=>{
       const g=targetFor(t.name);
       if(!g) return;
-      for(const side of ['left','right']){
-        const z=sideZone(t,side);
-        apply(g[side],z);
-        const anchor=g[side][0];
-        const slot=slots[anchor]||0;
-        addMarker(anchor,z,i+1,slot);
-        slots[anchor]=slot+1;
-      }
+      apply(g.left,sideZone(t,'left'));
+      apply(g.right,sideZone(t,'right'));
     });
 
     for(const [id,z] of Object.entries(chosen)){
@@ -69,7 +43,7 @@
       const g=targetFor(t.name), zl=sideZone(t,'left'), zr=sideZone(t,'right');
       const colorName=z=>z==='green'?'verde':z==='yellow'?'amarelo':'vermelho';
       const d=document.createElement('div'); d.className='test';
-      d.innerHTML=`<div class="test-head"><b>${i+1}. ${t.name}</b><span class="asym" style="color:${COLORS[z]}">${p.toFixed(1)}%</span></div>${g?`<div class="muscle-name">Mapa: ${g.label} • marcador ${i+1}</div>`:''}<div class="vals"><div class="val">Esquerda<b style="color:${COLORS[zl]}">${t.left.toFixed(1)} kg • ${colorName(zl)}</b></div><div class="val">Direita<b style="color:${COLORS[zr]}">${t.right.toFixed(1)} kg • ${colorName(zr)}</b></div><div class="val">Lado mais fraco<b>${side}</b></div></div>`;
+      d.innerHTML=`<div class="test-head"><b>${t.name}</b><span class="asym" style="color:${COLORS[z]}">${p.toFixed(1)}%</span></div>${g?`<div class="muscle-name">Mapa: ${g.label}</div>`:''}<div class="vals"><div class="val">Esquerda<b style="color:${COLORS[zl]}">${t.left.toFixed(1)} kg • ${colorName(zl)}</b></div><div class="val">Direita<b style="color:${COLORS[zr]}">${t.right.toFixed(1)} kg • ${colorName(zr)}</b></div><div class="val">Lado mais fraco<b>${side}</b></div></div>`;
       box.appendChild(d);
     }
     if(!tests.length) box.innerHTML='<div class="empty">Nenhum teste reconhecido.</div>';
