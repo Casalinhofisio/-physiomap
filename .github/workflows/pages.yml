@@ -26,15 +26,8 @@ jobs:
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Ativar mapa anatômico detalhado
-        run: python - <<'PY'
-          from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text()
-          tag='<script src="anatomy-map.js"></script>'
-          if tag not in s:
-              s=s.replace('</body>', tag+'</body>')
-          p.write_text(s)
-          PY
+        run: |
+          sed -i 's#</body>#<script src="anatomy-map.js"></script></body>#' index.html
       - name: Preparar site
         uses: actions/upload-pages-artifact@v4
         with:
