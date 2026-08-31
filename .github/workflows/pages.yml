@@ -25,15 +25,6 @@ jobs:
         uses: actions/checkout@v6
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
-      - name: Aplicar comportamento bilateral
-        run: python - <<'PY'
-          from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text()
-          if 'override.js' not in s:
-              s=s.replace('</body>', '<script src="override.js"></script></body>')
-          p.write_text(s)
-          PY
       - name: Preparar site
         uses: actions/upload-pages-artifact@v4
         with:
