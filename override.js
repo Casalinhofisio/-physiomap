@@ -1,35 +1,81 @@
-// Mostra todos os achados bilaterais no mapa.
-// Regra visual: lado mais forte = verde; lado mais fraco = cor da assimetria.
-// Se a assimetria for <=10%, os dois lados ficam verdes.
-paintTests = function(tests){
-  resetBody();
-  const chosen = {};
-  const rank = {green:1,yellow:2,red:3};
-  const apply = (ids, z) => {
-    for (const id of ids) {
-      if (!chosen[id] || rank[z] > rank[chosen[id]]) chosen[id] = z;
+// PhysioMap: exibe TODOS os achados bilaterais do PDF no boneco.
+// Regra visual: <=10% = ambos verdes; 10-20% = forte verde / fraco amarelo; >20% = forte verde / fraco vermelho.
+// Quando dois testes usam a mesma região, nenhum achado some: cada teste recebe um marcador numerado no músculo.
+
+(function(){
+  const ns='http://www.w3.org/2000/svg';
+  const originalReset = resetBody;
+
+  resetBody = function(){
+    originalReset();
+    document.querySelectorAll('.finding-marker,.finding-number').forEach(x=>x.remove());
+  };
+
+  function sideZone(t, side){
+    const p=asym(t.left,t.right), z=zone(p);
+    if(p<=10 || t.left===t.right) return 'green';
+    const weak=t.left<t.right?'left':'right';
+    return side===weak?z:'green';
+  }
+
+  function addMarker(id,z,num,slot){
+    const el=document.getElementById(id);
+    if(!el) return;
+    const svg=el.ownerSVGElement, box=el.getBBox();
+    const x=box.x+box.width/2+(slot%2?7:-7);
+    const y=box.y+box.height/2+Math.floor(slot/2)*13;
+    const c=document.createElementNS(ns,'circle');
+    c.setAttribute('class','finding-marker');
+    c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',8);
+    c.setAttribute('fill',COLORS[z]); c.setAttribute('stroke','#fff'); c.setAttribute('stroke-width','1.8');
+    const tx=document.createElementNS(ns,'text');
+    tx.setAttribute('class','finding-number');
+    tx.setAttribute('x',x); tx.setAttribute('y',y+.5);
+    tx.setAttribute('fill','#fff'); tx.setAttribute('font-size','9'); tx.setAttribute('font-weight','900');
+    tx.setAttribute('text-anchor','middle'); tx.setAttribute('dominant-baseline','middle');
+    tx.textContent=String(num);
+    svg.append(c,tx);
+  }
+
+  paintTests = function(tests){
+    resetBody();
+    const chosen={}, rank={green:1,yellow:2,red:3}, slots={};
+    const apply=(ids,z)=>{for(const id of ids){if(!chosen[id]||rank[z]>rank[chosen[id]])chosen[id]=z;}};
+
+    tests.forEach((t,i)=>{
+      const g=targetFor(t.name);
+      if(!g) return;
+      for(const side of ['left','right']){
+        const z=sideZone(t,side);
+        apply(g[side],z);
+        const anchor=g[side][0];
+        const slot=slots[anchor]||0;
+        addMarker(anchor,z,i+1,slot);
+        slots[anchor]=slot+1;
+      }
+    });
+
+    for(const [id,z] of Object.entries(chosen)){
+      const el=document.getElementById(id);
+      if(el) el.style.fill=COLORS[z];
     }
   };
-  for (const t of tests) {
-    const p = asym(t.left, t.right);
-    const z = zone(p);
-    const g = targetFor(t.name);
-    if (!g) continue;
-    if (p <= 10 || t.left === t.right) {
-      apply(g.left, 'green');
-      apply(g.right, 'green');
-      continue;
-    }
-    const weak = t.left < t.right ? 'left' : 'right';
-    const strong = weak === 'left' ? 'right' : 'left';
-    apply(g[strong], 'green');
-    apply(g[weak], z);
-  }
-  for (const [id, z] of Object.entries(chosen)) {
-    const el = document.getElementById(id);
-    if (el) el.style.fill = COLORS[z];
-  }
-};
 
-const mapHint = document.querySelector('.map-title small');
-if (mapHint) mapHint.textContent = 'mostra os dois lados avaliados';
+  render = function(tests){
+    const box=$('testes'); box.innerHTML='';
+    for(let i=0;i<tests.length;i++){
+      const t=tests[i], p=asym(t.left,t.right), z=zone(p);
+      const side=t.left<t.right?'Esquerda':t.right<t.left?'Direita':'Igual';
+      const g=targetFor(t.name), zl=sideZone(t,'left'), zr=sideZone(t,'right');
+      const colorName=z=>z==='green'?'verde':z==='yellow'?'amarelo':'vermelho';
+      const d=document.createElement('div'); d.className='test';
+      d.innerHTML=`<div class="test-head"><b>${i+1}. ${t.name}</b><span class="asym" style="color:${COLORS[z]}">${p.toFixed(1)}%</span></div>${g?`<div class="muscle-name">Mapa: ${g.label} • marcador ${i+1}</div>`:''}<div class="vals"><div class="val">Esquerda<b style="color:${COLORS[zl]}">${t.left.toFixed(1)} kg • ${colorName(zl)}</b></div><div class="val">Direita<b style="color:${COLORS[zr]}">${t.right.toFixed(1)} kg • ${colorName(zr)}</b></div><div class="val">Lado mais fraco<b>${side}</b></div></div>`;
+      box.appendChild(d);
+    }
+    if(!tests.length) box.innerHTML='<div class="empty">Nenhum teste reconhecido.</div>';
+    paintTests(tests);
+  };
+
+  const hint=document.querySelector('.map-title small');
+  if(hint) hint.textContent='todos os achados do PDF';
+})();
