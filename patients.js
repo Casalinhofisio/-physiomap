@@ -1,130 +1,29 @@
-// ActivAnatomy — pacientes por usuário (Supabase)
+// ActivAnatomy — gestor de pacientes e histórico por usuário
 (async function(){
-  const waitForSupabase=async()=>{
-    for(let i=0;i<80;i++){
-      if(window.activAnatomySupabase)return window.activAnatomySupabase;
-      await new Promise(r=>setTimeout(r,100));
-    }
-    return null;
-  };
-  const sb=await waitForSupabase();
-  if(!sb)return;
-
-  const main=document.querySelector('main.wrap');
-  const hero=document.querySelector('.hero');
-  const grid=document.querySelector('.grid');
-  if(!main||!hero||!grid)return;
-
-  const style=document.createElement('style');
-  style.textContent=`
-  .aa-nav{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}.aa-nav-btn{border:1px solid #ffffff35;background:#ffffff12;color:#fff;border-radius:11px;padding:9px 12px;font-size:12px;font-weight:800;cursor:pointer}.aa-nav-btn.active{background:#fff;color:#145d58}.aa-add-patient{margin-top:10px;width:100%;border:1px solid #b8cfcb;background:#eef6f4;color:#145d58;border-radius:12px;padding:11px 13px;font-weight:900;cursor:pointer}
-  .aa-patients{display:none;background:#fff;border:1px solid #dfe7e5;border-radius:20px;padding:18px;box-shadow:0 5px 18px #183d3914}.aa-patients.show{display:block}.aa-patients-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.aa-patients-head h2{margin:0}.aa-primary{border:0;background:#145d58;color:#fff;border-radius:12px;padding:11px 14px;font-weight:900;cursor:pointer}.aa-search{width:100%;margin:14px 0 10px;border:1px solid #d6e1df;border-radius:12px;padding:12px 13px;font-size:14px}.aa-patient-list{display:grid;gap:9px}.aa-patient-row{border:1px solid #dfe7e5;border-radius:14px;padding:12px 13px;display:flex;justify-content:space-between;gap:12px;align-items:center;background:#fbfcfc}.aa-patient-name{font-weight:900}.aa-patient-meta{font-size:11px;color:#687674;margin-top:3px}.aa-patient-actions{display:flex;gap:6px}.aa-small{border:0;border-radius:9px;padding:8px 10px;font-size:11px;font-weight:800;cursor:pointer;background:#e8efee;color:#17302e}.aa-small.danger{background:#fff0ef;color:#9f312d}.aa-empty{text-align:center;padding:28px;color:#687674}
-  .aa-modal-bg{position:fixed;inset:0;background:#0d26247a;display:none;align-items:center;justify-content:center;padding:18px;z-index:9999}.aa-modal-bg.show{display:flex}.aa-modal{width:min(460px,100%);background:#fff;border-radius:20px;padding:20px;box-shadow:0 20px 70px #0004}.aa-modal h3{margin:0 0 14px}.aa-modal label{display:block;font-size:11px;font-weight:800;color:#687674;margin:10px 0 5px}.aa-modal input,.aa-modal textarea{width:100%;border:1px solid #d6e1df;border-radius:11px;padding:11px 12px;font:inherit}.aa-modal textarea{min-height:80px;resize:vertical}.aa-modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.aa-cancel{border:0;background:#e8efee;color:#17302e;border-radius:11px;padding:10px 13px;font-weight:800;cursor:pointer}
-  @media(max-width:560px){.aa-patient-row{align-items:flex-start;flex-direction:column}.aa-patient-actions{width:100%}.aa-small{flex:1}}
-  @media print{.aa-nav,.aa-add-patient,.aa-patients{display:none!important}}
-  `;
-  document.head.appendChild(style);
-
-  const heroText=hero.querySelector('.heroin > div:first-child');
-  if(heroText && !hero.querySelector('.aa-nav')){
-    const nav=document.createElement('div');
-    nav.className='aa-nav';
-    nav.innerHTML='<button class="aa-nav-btn active" data-page="assessment">Avaliação</button><button class="aa-nav-btn" data-page="patients">Pacientes</button>';
-    heroText.appendChild(nav);
-  }
-
-  const importCard=grid.querySelector('.card');
-  if(importCard && !document.querySelector('.aa-add-patient')){
-    const add=document.createElement('button');
-    add.className='aa-add-patient';
-    add.type='button';
-    add.textContent='+ Adicionar paciente';
-    const drop=importCard.querySelector('.drop');
-    if(drop)drop.insertAdjacentElement('afterend',add); else importCard.prepend(add);
-    add.addEventListener('click',()=>openModal());
-  }
-
-  const patientsPage=document.createElement('section');
-  patientsPage.className='aa-patients';
-  patientsPage.innerHTML=`
-    <div class="aa-patients-head"><div><h2>Meus pacientes</h2><div class="hint">Pacientes salvos somente na sua conta.</div></div><button class="aa-primary" id="aaNewPatient">+ Adicionar paciente</button></div>
-    <input class="aa-search" id="aaPatientSearch" placeholder="Buscar paciente pelo nome...">
-    <div class="aa-patient-list" id="aaPatientList"><div class="aa-empty">Carregando pacientes...</div></div>`;
-  grid.insertAdjacentElement('afterend',patientsPage);
-
-  const modalBg=document.createElement('div');
-  modalBg.className='aa-modal-bg';
-  modalBg.innerHTML=`<div class="aa-modal"><h3 id="aaModalTitle">Adicionar paciente</h3>
-    <label>Nome do paciente *</label><input id="aaPName" placeholder="Nome completo">
-    <label>Data de nascimento</label><input id="aaPBirth" type="date">
-    <label>Telefone</label><input id="aaPPhone" placeholder="(00) 00000-0000">
-    <label>Observações</label><textarea id="aaPNotes" placeholder="Opcional"></textarea>
-    <div class="aa-modal-actions"><button class="aa-cancel" id="aaCancelPatient">Cancelar</button><button class="aa-primary" id="aaSavePatient">Salvar paciente</button></div>
-  </div>`;
-  document.body.appendChild(modalBg);
-
-  let patients=[],editingId=null,currentUser=null;
-  const listEl=patientsPage.querySelector('#aaPatientList');
-  const searchEl=patientsPage.querySelector('#aaPatientSearch');
-  const nameEl=modalBg.querySelector('#aaPName'),birthEl=modalBg.querySelector('#aaPBirth'),phoneEl=modalBg.querySelector('#aaPPhone'),notesEl=modalBg.querySelector('#aaPNotes');
-
-  function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-  function formatDate(d){if(!d)return'';const [y,m,day]=d.split('-');return `${day}/${m}/${y}`}
-  function render(){
-    const q=searchEl.value.trim().toLowerCase();
-    const shown=patients.filter(p=>p.name.toLowerCase().includes(q));
-    if(!shown.length){listEl.innerHTML='<div class="aa-empty">'+(q?'Nenhum paciente encontrado.':'Nenhum paciente cadastrado ainda.')+'</div>';return}
-    listEl.innerHTML=shown.map(p=>`<div class="aa-patient-row" data-id="${p.id}"><div><div class="aa-patient-name">${esc(p.name)}</div><div class="aa-patient-meta">${p.birth_date?'Nascimento: '+formatDate(p.birth_date):'Sem data de nascimento'}${p.phone?' • '+esc(p.phone):''}</div></div><div class="aa-patient-actions"><button class="aa-small" data-action="edit">Editar</button><button class="aa-small danger" data-action="delete">Excluir</button></div></div>`).join('');
-  }
-  async function loadPatients(){
-    if(!currentUser)return;
-    listEl.innerHTML='<div class="aa-empty">Carregando pacientes...</div>';
-    const {data,error}=await sb.from('patients').select('*').eq('user_id',currentUser.id).order('name',{ascending:true});
-    if(error){listEl.innerHTML='<div class="aa-empty">Não foi possível carregar os pacientes.</div>';return}
-    patients=data||[];render();
-  }
-  function openModal(patient=null){
-    editingId=patient?.id||null;
-    modalBg.querySelector('#aaModalTitle').textContent=patient?'Editar paciente':'Adicionar paciente';
-    nameEl.value=patient?.name||'';birthEl.value=patient?.birth_date||'';phoneEl.value=patient?.phone||'';notesEl.value=patient?.notes||'';
-    modalBg.classList.add('show');setTimeout(()=>nameEl.focus(),50);
-  }
-  function closeModal(){modalBg.classList.remove('show');editingId=null}
-  async function savePatient(){
-    const name=nameEl.value.trim();if(!name){alert('Digite o nome do paciente.');return}
-    const btn=modalBg.querySelector('#aaSavePatient');btn.disabled=true;btn.textContent='Salvando...';
-    try{
-      const payload={name,birth_date:birthEl.value||null,phone:phoneEl.value.trim()||null,notes:notesEl.value.trim()||null,updated_at:new Date().toISOString()};
-      let error;
-      if(editingId){({error}=await sb.from('patients').update(payload).eq('id',editingId).eq('user_id',currentUser.id));}
-      else{payload.user_id=currentUser.id;({error}=await sb.from('patients').insert(payload));}
-      if(error)throw error;
-      closeModal();await loadPatients();
-    }catch(e){alert('Não foi possível salvar o paciente. '+(e?.message||''))}
-    finally{btn.disabled=false;btn.textContent='Salvar paciente'}
-  }
-  async function deletePatient(id){
-    const p=patients.find(x=>x.id===id);if(!p)return;
-    if(!confirm(`Excluir ${p.name}?`))return;
-    const {error}=await sb.from('patients').delete().eq('id',id).eq('user_id',currentUser.id);
-    if(error){alert('Não foi possível excluir o paciente.');return}
-    patients=patients.filter(x=>x.id!==id);render();
-  }
-  function setPage(page){
-    document.querySelectorAll('.aa-nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
-    if(page==='patients'){grid.style.display='none';patientsPage.classList.add('show');loadPatients();}
-    else{grid.style.display='';patientsPage.classList.remove('show');}
-  }
-
-  hero.addEventListener('click',e=>{const b=e.target.closest('.aa-nav-btn');if(b)setPage(b.dataset.page)});
-  patientsPage.querySelector('#aaNewPatient').addEventListener('click',()=>openModal());
-  searchEl.addEventListener('input',render);
-  listEl.addEventListener('click',e=>{const row=e.target.closest('.aa-patient-row');if(!row)return;const id=row.dataset.id;const action=e.target.closest('[data-action]')?.dataset.action;if(action==='edit')openModal(patients.find(p=>p.id===id));if(action==='delete')deletePatient(id)});
-  modalBg.querySelector('#aaCancelPatient').addEventListener('click',closeModal);
-  modalBg.querySelector('#aaSavePatient').addEventListener('click',savePatient);
-  modalBg.addEventListener('click',e=>{if(e.target===modalBg)closeModal()});
-
-  async function syncUser(){const {data:{session}}=await sb.auth.getSession();currentUser=session?.user||null;if(currentUser)loadPatients();}
-  sb.auth.onAuthStateChange((_e,session)=>{currentUser=session?.user||null;if(!currentUser){patients=[];render();setPage('assessment')}});
-  await syncUser();
+ const wait=async()=>{for(let i=0;i<100;i++){if(window.activAnatomySupabase)return window.activAnatomySupabase;await new Promise(r=>setTimeout(r,100))}return null};
+ const sb=await wait(); if(!sb)return;
+ const main=document.querySelector('main.wrap'),hero=document.querySelector('.hero'),grid=document.querySelector('.grid');if(!main||!hero||!grid)return;
+ const style=document.createElement('style');style.textContent=`
+ .aa-nav{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}.aa-nav-btn{border:1px solid #ffffff35;background:#ffffff12;color:#fff;border-radius:11px;padding:9px 12px;font-size:12px;font-weight:800;cursor:pointer}.aa-nav-btn.active{background:#fff;color:#145d58}.aa-add-patient{margin-top:10px;width:100%;border:1px solid #b8cfcb;background:#eef6f4;color:#145d58;border-radius:12px;padding:11px 13px;font-weight:900;cursor:pointer}.aa-patients{display:none;background:#fff;border:1px solid #dfe7e5;border-radius:20px;padding:18px;box-shadow:0 5px 18px #183d3914}.aa-patients.show{display:block}.aa-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.aa-head h2,.aa-head h3{margin:0}.aa-primary{border:0;background:#145d58;color:#fff;border-radius:12px;padding:11px 14px;font-weight:900;cursor:pointer}.aa-search,.aa-select{width:100%;margin:14px 0 10px;border:1px solid #d6e1df;border-radius:12px;padding:12px 13px;font-size:14px;background:#fff}.aa-list{display:grid;gap:9px}.aa-row{border:1px solid #dfe7e5;border-radius:14px;padding:12px 13px;display:flex;justify-content:space-between;gap:12px;align-items:center;background:#fbfcfc}.aa-name{font-weight:900}.aa-meta{font-size:11px;color:#687674;margin-top:3px}.aa-actions{display:flex;gap:6px;flex-wrap:wrap}.aa-small{border:0;border-radius:9px;padding:8px 10px;font-size:11px;font-weight:800;cursor:pointer;background:#e8efee;color:#17302e}.aa-small.open{background:#145d58;color:#fff}.aa-small.danger{background:#fff0ef;color:#9f312d}.aa-empty{text-align:center;padding:28px;color:#687674}.aa-detail{display:none}.aa-detail.show{display:block}.aa-back{border:0;background:transparent;color:#145d58;font-weight:900;cursor:pointer;padding:0;margin-bottom:12px}.aa-history{margin-top:18px}.aa-savebox{margin-top:12px;border-top:1px solid #e4ecea;padding-top:12px}.aa-savebox label{font-size:11px;font-weight:800;color:#687674}.aa-save-status{font-size:11px;margin-top:7px;color:#687674}.aa-modal-bg{position:fixed;inset:0;background:#0d26247a;display:none;align-items:center;justify-content:center;padding:18px;z-index:9999}.aa-modal-bg.show{display:flex}.aa-modal{width:min(460px,100%);background:#fff;border-radius:20px;padding:20px;box-shadow:0 20px 70px #0004}.aa-modal h3{margin:0 0 14px}.aa-modal label{display:block;font-size:11px;font-weight:800;color:#687674;margin:10px 0 5px}.aa-modal input,.aa-modal textarea{width:100%;border:1px solid #d6e1df;border-radius:11px;padding:11px 12px;font:inherit}.aa-modal textarea{min-height:80px;resize:vertical}.aa-modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.aa-cancel{border:0;background:#e8efee;color:#17302e;border-radius:11px;padding:10px 13px;font-weight:800;cursor:pointer}@media(max-width:560px){.aa-row{align-items:flex-start;flex-direction:column}.aa-actions{width:100%}.aa-small{flex:1}}@media print{.aa-nav,.aa-add-patient,.aa-patients,.aa-savebox{display:none!important}}`;
+ document.head.appendChild(style);
+ const heroText=hero.querySelector('.heroin > div:first-child');if(heroText&&!hero.querySelector('.aa-nav')){const nav=document.createElement('div');nav.className='aa-nav';nav.innerHTML='<button class="aa-nav-btn active" data-page="assessment">Avaliação</button><button class="aa-nav-btn" data-page="patients">Pacientes</button>';heroText.appendChild(nav)}
+ const importCard=grid.querySelector('.card');if(importCard&&!document.querySelector('.aa-add-patient')){const add=document.createElement('button');add.className='aa-add-patient';add.textContent='+ Adicionar paciente';const drop=importCard.querySelector('.drop');if(drop)drop.insertAdjacentElement('afterend',add);else importCard.prepend(add);add.onclick=()=>openModal()}
+ const saveBox=document.createElement('div');saveBox.className='aa-savebox';saveBox.innerHTML='<label>Salvar esta avaliação no paciente</label><select class="aa-select" id="aaEvalPatient"><option value="">Selecione um paciente...</option></select><button class="aa-primary" id="aaSaveEval" type="button">Salvar avaliação</button><div class="aa-save-status" id="aaSaveStatus">Importe um PDF ActivForce e selecione o paciente.</div>';if(importCard)importCard.appendChild(saveBox);
+ const page=document.createElement('section');page.className='aa-patients';page.innerHTML=`<div id="aaPatientIndex"><div class="aa-head"><div><h2>Meus pacientes</h2><div class="hint">Histórico salvo somente na sua conta.</div></div><button class="aa-primary" id="aaNewPatient">+ Adicionar paciente</button></div><input class="aa-search" id="aaSearch" placeholder="Buscar paciente pelo nome..."><div class="aa-list" id="aaList"><div class="aa-empty">Carregando...</div></div></div><div class="aa-detail" id="aaDetail"><button class="aa-back" id="aaBack">← Voltar aos pacientes</button><div class="aa-head"><div><h2 id="aaDetailName"></h2><div class="hint" id="aaDetailMeta"></div></div><button class="aa-primary" id="aaNewAssessment">+ Nova avaliação</button></div><div class="aa-history"><div class="aa-head"><h3>Histórico de avaliações</h3><button class="aa-small" id="aaCompare" disabled>Comparar avaliações</button></div><div class="aa-list" id="aaHistory"></div></div></div>`;grid.insertAdjacentElement('afterend',page);
+ const modal=document.createElement('div');modal.className='aa-modal-bg';modal.innerHTML='<div class="aa-modal"><h3 id="aaModalTitle">Adicionar paciente</h3><label>Nome do paciente *</label><input id="aaPName"><label>Data de nascimento</label><input id="aaPBirth" type="date"><label>Telefone</label><input id="aaPPhone"><label>Observações</label><textarea id="aaPNotes"></textarea><div class="aa-modal-actions"><button class="aa-cancel" id="aaCancel">Cancelar</button><button class="aa-primary" id="aaSavePatient">Salvar paciente</button></div></div>';document.body.appendChild(modal);
+ let patients=[],user=null,editing=null,selected=null;
+ const list=page.querySelector('#aaList'),search=page.querySelector('#aaSearch'),sel=saveBox.querySelector('#aaEvalPatient'),status=saveBox.querySelector('#aaSaveStatus');
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])),fmt=d=>{if(!d)return'';const x=String(d).slice(0,10).split('-');return x.length===3?`${x[2]}/${x[1]}/${x[0]}`:d};
+ function render(){const q=search.value.trim().toLowerCase(),shown=patients.filter(p=>p.name.toLowerCase().includes(q));list.innerHTML=shown.length?shown.map(p=>`<div class="aa-row" data-id="${p.id}"><div><div class="aa-name">${esc(p.name)}</div><div class="aa-meta">${p.birth_date?'Nascimento: '+fmt(p.birth_date):'Paciente cadastrado'}</div></div><div class="aa-actions"><button class="aa-small open" data-a="open">Abrir</button><button class="aa-small" data-a="edit">Editar</button><button class="aa-small danger" data-a="delete">Excluir</button></div></div>`).join(''):'<div class="aa-empty">Nenhum paciente cadastrado ainda.</div>';sel.innerHTML='<option value="">Selecione um paciente...</option>'+patients.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');if(selected)sel.value=selected.id}
+ async function load(){if(!user)return;const {data,error}=await sb.from('patients').select('*').eq('user_id',user.id).order('name');if(error){list.innerHTML='<div class="aa-empty">Erro ao carregar pacientes.</div>';return}patients=data||[];render()}
+ function openModal(p=null){editing=p?.id||null;modal.querySelector('#aaModalTitle').textContent=p?'Editar paciente':'Adicionar paciente';modal.querySelector('#aaPName').value=p?.name||'';modal.querySelector('#aaPBirth').value=p?.birth_date||'';modal.querySelector('#aaPPhone').value=p?.phone||'';modal.querySelector('#aaPNotes').value=p?.notes||'';modal.classList.add('show')}
+ async function savePatient(){const name=modal.querySelector('#aaPName').value.trim();if(!name)return alert('Digite o nome do paciente.');const payload={name,birth_date:modal.querySelector('#aaPBirth').value||null,phone:modal.querySelector('#aaPPhone').value.trim()||null,notes:modal.querySelector('#aaPNotes').value.trim()||null,updated_at:new Date().toISOString()};let error;if(editing)({error}=await sb.from('patients').update(payload).eq('id',editing).eq('user_id',user.id));else{payload.user_id=user.id;({error}=await sb.from('patients').insert(payload))}if(error)return alert('Não foi possível salvar: '+error.message);modal.classList.remove('show');editing=null;await load()}
+ async function openPatient(id){selected=patients.find(p=>p.id===id);if(!selected)return;page.querySelector('#aaPatientIndex').style.display='none';page.querySelector('#aaDetail').classList.add('show');page.querySelector('#aaDetailName').textContent=selected.name;page.querySelector('#aaDetailMeta').textContent=selected.birth_date?'Nascimento: '+fmt(selected.birth_date):'Histórico do paciente';sel.value=id;await loadHistory()}
+ async function loadHistory(){const h=page.querySelector('#aaHistory');h.innerHTML='<div class="aa-empty">Carregando avaliações...</div>';const {data,error}=await sb.from('evaluations').select('*').eq('patient_id',selected.id).eq('user_id',user.id).order('created_at',{ascending:false});if(error){h.innerHTML='<div class="aa-empty">Não foi possível carregar o histórico.</div>';return}const rows=data||[];h.innerHTML=rows.length?rows.map(e=>`<div class="aa-row"><div><div class="aa-name">${esc(e.source||'ActivForce')} • ${fmt(e.evaluation_date||e.created_at)}</div><div class="aa-meta">${Array.isArray(e.tests)?e.tests.length:0} testes • salvo em ${fmt(e.created_at)}</div></div><div class="aa-actions"><button class="aa-small danger" data-del-eval="${e.id}">Excluir</button></div></div>`).join(''):'<div class="aa-empty">Nenhuma avaliação salva para este paciente.</div>';page.querySelector('#aaCompare').disabled=rows.length<2}
+ async function saveEvaluation(){if(!user)return;const patientId=sel.value;if(!patientId)return alert('Selecione um paciente.');const tests=(window.currentTests||window.tests||[]).filter(t=>t&&t.left!=null&&t.right!=null);if(!tests.length)return alert('Primeiro importe um PDF ActivForce reconhecido.');const meta=window.currentPatient||window.patientData||{};const payload={user_id:user.id,patient_id:patientId,evaluation_date:meta.date||meta.evaluation_date||new Date().toISOString().slice(0,10),source:'ActivForce',file_name:window.currentFileName||null,tests:tests.map(t=>({name:t.name,left:Number(t.left),right:Number(t.right),metric:t.metric||'kg'})),patient_data:meta};status.textContent='Salvando...';const {error}=await sb.from('evaluations').insert(payload);if(error){status.textContent='Não foi possível salvar.';return alert(error.message)}status.textContent='Avaliação salva na nuvem.';if(selected?.id===patientId)loadHistory()}
+ function setPage(x){document.querySelectorAll('.aa-nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===x));if(x==='patients'){grid.style.display='none';page.classList.add('show');load()}else{grid.style.display='';page.classList.remove('show')}}
+ hero.onclick=e=>{const b=e.target.closest('.aa-nav-btn');if(b)setPage(b.dataset.page)};page.querySelector('#aaNewPatient').onclick=()=>openModal();search.oninput=render;modal.querySelector('#aaCancel').onclick=()=>modal.classList.remove('show');modal.querySelector('#aaSavePatient').onclick=savePatient;saveBox.querySelector('#aaSaveEval').onclick=saveEvaluation;page.querySelector('#aaBack').onclick=()=>{selected=null;page.querySelector('#aaPatientIndex').style.display='';page.querySelector('#aaDetail').classList.remove('show')};page.querySelector('#aaNewAssessment').onclick=()=>{sel.value=selected.id;setPage('assessment');window.scrollTo({top:0,behavior:'smooth'})};page.querySelector('#aaCompare').onclick=()=>alert('O histórico já está preparado. O comparativo entre duas avaliações entra na próxima etapa.');
+ list.onclick=async e=>{const r=e.target.closest('.aa-row');if(!r)return;const p=patients.find(x=>x.id===r.dataset.id),a=e.target.closest('[data-a]')?.dataset.a;if(a==='open')openPatient(p.id);if(a==='edit')openModal(p);if(a==='delete'&&confirm(`Excluir ${p.name} e todo o histórico?`)){const {error}=await sb.from('patients').delete().eq('id',p.id).eq('user_id',user.id);if(error)alert(error.message);else load()}};
+ page.querySelector('#aaHistory').onclick=async e=>{const id=e.target.closest('[data-del-eval]')?.dataset.delEval;if(id&&confirm('Excluir esta avaliação?')){await sb.from('evaluations').delete().eq('id',id).eq('user_id',user.id);loadHistory()}};
+ sb.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;if(user)load();else{patients=[];render();setPage('assessment')}});const {data:{session}}=await sb.auth.getSession();user=session?.user||null;if(user)load();
 })();
