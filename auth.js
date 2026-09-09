@@ -2,6 +2,13 @@
 (async function(){
   const SUPABASE_URL='https://vkizqqrccyvcabfxwyhz.supabase.co';
   const SUPABASE_KEY='sb_publishable_zQ-Go0vKh8aGdmZ53W7_2Q_meH4fpOo';
+  if(!window.supabase){
+    await new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      s.onload=resolve;s.onerror=reject;document.head.appendChild(s);
+    }).catch(()=>{});
+  }
   if(!window.supabase){console.error('Supabase não carregou');return;}
   const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
   window.activAnatomySupabase=sb;
