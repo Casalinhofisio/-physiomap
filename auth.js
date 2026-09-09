@@ -25,7 +25,8 @@
   .aa-tabs{display:grid;grid-template-columns:1fr 1fr;background:#eef3f2;border-radius:13px;padding:4px;margin-bottom:17px}.aa-tab{border:0;background:transparent;padding:10px;border-radius:10px;font-weight:800;color:#687674;cursor:pointer}.aa-tab.active{background:#fff;color:#145d58;box-shadow:0 2px 8px #00000010}
   .aa-field{margin:11px 0}.aa-field label{display:block;font-size:11px;font-weight:800;color:#687674;margin:0 0 5px}.aa-field input{width:100%;border:1px solid #d6e1df;border-radius:12px;padding:13px 14px;font-size:15px;outline:none}.aa-field input:focus{border-color:#145d58;box-shadow:0 0 0 3px #145d5815}
   .aa-submit{width:100%;border:0;border-radius:12px;padding:13px 15px;background:#145d58;color:#fff;font-weight:900;font-size:15px;cursor:pointer;margin-top:8px}.aa-submit:disabled{opacity:.6;cursor:wait}.aa-msg{display:none;margin-top:12px;padding:10px 11px;border-radius:10px;font-size:12px;line-height:1.35}.aa-msg.show{display:block}.aa-msg.ok{background:#edf8f1;color:#17683c}.aa-msg.err{background:#fff0ef;color:#9f312d}.aa-name{display:none}.aa-name.show{display:block}
-  .aa-account{display:flex;align-items:center;gap:8px;margin-top:9px;justify-content:flex-end}.aa-user{font-size:11px;color:#dcebea;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.aa-logout{border:1px solid #ffffff45;background:#ffffff12;color:#fff;border-radius:9px;padding:7px 9px;font-size:11px;font-weight:800;cursor:pointer}
+  .aa-creator{margin-top:20px;padding-top:15px;border-top:1px solid #e5ecea;text-align:center;color:#7a8886;font-size:11px;line-height:1.45}.aa-creator b{color:#4f625f}
+  .aa-account{display:flex;align-items:center;gap:8px;justify-content:flex-end}.aa-user{font-size:11px;color:#dcebea;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.aa-logout{border:1px solid #ffffff45;background:#ffffff12;color:#fff;border-radius:9px;padding:7px 9px;font-size:11px;font-weight:800;cursor:pointer}
   @media(max-width:560px){.aa-auth-card{padding:22px;border-radius:20px}.aa-auth-brand{font-size:30px}.aa-account{justify-content:flex-start}.heroin{flex-wrap:wrap}}
   @media print{.aa-account{display:none!important}}
   `;
@@ -42,6 +43,7 @@
     <div class="aa-field"><label>Senha</label><input id="aaPassword" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres"></div>
     <button id="aaSubmit" class="aa-submit">Entrar</button>
     <div id="aaMsg" class="aa-msg"></div>
+    <div class="aa-creator">Criado por <b>Eduardo Casalinho Silva</b><br>Fisioterapeuta • CREFITO 437356-F</div>
   </div>`;
   document.body.prepend(auth);
 
@@ -55,11 +57,14 @@
   const addAccountBar=user=>{
     document.querySelector('.aa-account')?.remove();
     const pro=document.querySelector('.pro'); if(!pro)return;
+    pro.innerHTML='';
     const bar=document.createElement('div');bar.className='aa-account';
     const display=user.user_metadata?.name||user.email||'Usuário';
     bar.innerHTML=`<span class="aa-user" title="${String(display).replace(/"/g,'&quot;')}">${display}</span><button class="aa-logout">Sair</button>`;
     pro.appendChild(bar);
     bar.querySelector('.aa-logout').addEventListener('click',async()=>{await sb.auth.signOut();});
+    const footer=document.querySelector('.footer');
+    if(footer)footer.innerHTML='<b>ActivAnatomy</b> • Dinamometria & Mapeamento de Força';
   };
   const showApp=user=>{auth.style.display='none';main.style.display='';addAccountBar(user)};
   const showAuth=()=>{document.querySelector('.aa-account')?.remove();main.style.display='none';auth.style.display='flex';setMode('login')};
