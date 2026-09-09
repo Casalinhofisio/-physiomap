@@ -3,96 +3,21 @@
   const SUPABASE_URL='https://vkizqqrccyvcabfxwyhz.supabase.co';
   const SUPABASE_KEY='sb_publishable_zQ-Go0vKh8aGdmZ53W7_2Q_meH4fpOo';
   if(!window.supabase){
-    await new Promise((resolve,reject)=>{
-      const s=document.createElement('script');
-      s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-      s.onload=resolve;s.onerror=reject;document.head.appendChild(s);
-    }).catch(()=>{});
+    await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)}).catch(()=>{});
   }
-  if(!window.supabase){console.error('Supabase não carregou');return;}
-  const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-  window.activAnatomySupabase=sb;
-
-  const main=document.querySelector('main.wrap');
-  if(!main)return;
-  main.style.display='none';
-
-  const style=document.createElement('style');
-  style.textContent=`
+  if(!window.supabase){console.error('Supabase não carregou');return}
+  const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);window.activAnatomySupabase=sb;
+  const main=document.querySelector('main.wrap');if(!main)return;main.style.display='none';
+  const style=document.createElement('style');style.textContent=`
   .aa-auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:22px;background:linear-gradient(145deg,#eef5f3,#f9fbfa);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#17302e}
-  .aa-auth-card{width:min(430px,100%);background:#fff;border:1px solid #dfe7e5;border-radius:26px;padding:28px;box-shadow:0 18px 55px #123b3920}
-  .aa-auth-brand{font-size:34px;font-weight:800;letter-spacing:-1.2px;color:#145d58}.aa-auth-brand span{font-weight:300}.aa-auth-sub{font-size:13px;color:#687674;margin:3px 0 22px}
-  .aa-tabs{display:grid;grid-template-columns:1fr 1fr;background:#eef3f2;border-radius:13px;padding:4px;margin-bottom:17px}.aa-tab{border:0;background:transparent;padding:10px;border-radius:10px;font-weight:800;color:#687674;cursor:pointer}.aa-tab.active{background:#fff;color:#145d58;box-shadow:0 2px 8px #00000010}
-  .aa-field{margin:11px 0}.aa-field label{display:block;font-size:11px;font-weight:800;color:#687674;margin:0 0 5px}.aa-field input{width:100%;border:1px solid #d6e1df;border-radius:12px;padding:13px 14px;font-size:15px;outline:none}.aa-field input:focus{border-color:#145d58;box-shadow:0 0 0 3px #145d5815}
-  .aa-submit{width:100%;border:0;border-radius:12px;padding:13px 15px;background:#145d58;color:#fff;font-weight:900;font-size:15px;cursor:pointer;margin-top:8px}.aa-submit:disabled{opacity:.6;cursor:wait}.aa-msg{display:none;margin-top:12px;padding:10px 11px;border-radius:10px;font-size:12px;line-height:1.35}.aa-msg.show{display:block}.aa-msg.ok{background:#edf8f1;color:#17683c}.aa-msg.err{background:#fff0ef;color:#9f312d}.aa-name{display:none}.aa-name.show{display:block}
-  .aa-creator{margin-top:20px;padding-top:15px;border-top:1px solid #e5ecea;text-align:center;color:#7a8886;font-size:11px;line-height:1.45}.aa-creator b{color:#4f625f}
-  .aa-account{display:flex;align-items:center;gap:8px;justify-content:flex-end}.aa-user{font-size:11px;color:#dcebea;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.aa-logout{border:1px solid #ffffff45;background:#ffffff12;color:#fff;border-radius:9px;padding:7px 9px;font-size:11px;font-weight:800;cursor:pointer}
-  @media(max-width:560px){.aa-auth-card{padding:22px;border-radius:20px}.aa-auth-brand{font-size:30px}.aa-account{justify-content:flex-start}.heroin{flex-wrap:wrap}}
-  @media print{.aa-account{display:none!important}}
-  `;
+  .aa-auth-card{width:min(430px,100%);background:#fff;border:1px solid #dfe7e5;border-radius:26px;padding:28px;box-shadow:0 18px 55px #123b3920}.aa-auth-brand{font-size:34px;font-weight:800;letter-spacing:-1.2px;color:#145d58}.aa-auth-brand span{font-weight:300}.aa-auth-sub{font-size:13px;color:#687674;margin:3px 0 22px}
+  .aa-tabs{display:grid;grid-template-columns:1fr 1fr;background:#eef3f2;border-radius:13px;padding:4px;margin-bottom:17px}.aa-tab{border:0;background:transparent;padding:10px;border-radius:10px;font-weight:800;color:#687674;cursor:pointer}.aa-tab.active{background:#fff;color:#145d58;box-shadow:0 2px 8px #00000010}.aa-field{margin:11px 0}.aa-field label{display:block;font-size:11px;font-weight:800;color:#687674;margin:0 0 5px}.aa-field input{width:100%;border:1px solid #d6e1df;border-radius:12px;padding:13px 14px;font-size:15px;outline:none}.aa-field input:focus{border-color:#145d58;box-shadow:0 0 0 3px #145d5815}.aa-submit{width:100%;border:0;border-radius:12px;padding:13px 15px;background:#145d58;color:#fff;font-weight:900;font-size:15px;cursor:pointer;margin-top:8px}.aa-submit:disabled{opacity:.6;cursor:wait}.aa-msg{display:none;margin-top:12px;padding:10px 11px;border-radius:10px;font-size:12px;line-height:1.35}.aa-msg.show{display:block}.aa-msg.ok{background:#edf8f1;color:#17683c}.aa-msg.err{background:#fff0ef;color:#9f312d}.aa-name{display:none}.aa-name.show{display:block}.aa-creator{margin-top:20px;padding-top:15px;border-top:1px solid #e5ecea;text-align:center;color:#7a8886;font-size:11px;line-height:1.45}.aa-creator b{color:#4f625f}
+  .aa-account{display:flex;align-items:center;gap:8px;justify-content:flex-end}.aa-user{font-size:11px;color:#dcebea;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.aa-logout{border:1px solid #ffffff45;background:#ffffff12;color:#fff;border-radius:9px;padding:7px 9px;font-size:11px;font-weight:800;cursor:pointer}@media(max-width:560px){.aa-auth-card{padding:22px;border-radius:20px}.aa-auth-brand{font-size:30px}.aa-account{justify-content:flex-start}.heroin{flex-wrap:wrap}}@media print{.aa-account{display:none!important}}`;
   document.head.appendChild(style);
-
-  const auth=document.createElement('div');
-  auth.className='aa-auth';
-  auth.innerHTML=`<div class="aa-auth-card">
-    <div class="aa-auth-brand">Activ<span>Anatomy</span></div>
-    <div class="aa-auth-sub">Dinamometria & Mapeamento de Força</div>
-    <div class="aa-tabs"><button class="aa-tab active" data-mode="login">Entrar</button><button class="aa-tab" data-mode="signup">Criar conta</button></div>
-    <div id="aaName" class="aa-field aa-name"><label>Nome</label><input id="aaNameInput" autocomplete="name" placeholder="Seu nome"></div>
-    <div class="aa-field"><label>E-mail</label><input id="aaEmail" type="email" autocomplete="email" placeholder="seu@email.com"></div>
-    <div class="aa-field"><label>Senha</label><input id="aaPassword" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres"></div>
-    <button id="aaSubmit" class="aa-submit">Entrar</button>
-    <div id="aaMsg" class="aa-msg"></div>
-    <div class="aa-creator">Criado por <b>Eduardo Casalinho Silva</b><br>Fisioterapeuta • CREFITO 437356-F</div>
-  </div>`;
-  document.body.prepend(auth);
-
-  const tabs=[...auth.querySelectorAll('.aa-tab')],nameWrap=auth.querySelector('#aaName'),nameInput=auth.querySelector('#aaNameInput'),email=auth.querySelector('#aaEmail'),password=auth.querySelector('#aaPassword'),submit=auth.querySelector('#aaSubmit'),msg=auth.querySelector('#aaMsg');
-  let mode='login';
-  const setMsg=(text,type='err')=>{msg.textContent=text;msg.className=`aa-msg show ${type}`};
-  const clearMsg=()=>{msg.textContent='';msg.className='aa-msg'};
-  const setMode=m=>{mode=m;clearMsg();tabs.forEach(t=>t.classList.toggle('active',t.dataset.mode===m));nameWrap.classList.toggle('show',m==='signup');submit.textContent=m==='signup'?'Criar minha conta':'Entrar';password.autocomplete=m==='signup'?'new-password':'current-password'};
-  tabs.forEach(t=>t.addEventListener('click',()=>setMode(t.dataset.mode)));
-
-  const addAccountBar=user=>{
-    document.querySelector('.aa-account')?.remove();
-    const pro=document.querySelector('.pro'); if(!pro)return;
-    pro.innerHTML='';
-    const bar=document.createElement('div');bar.className='aa-account';
-    const display=user.user_metadata?.name||user.email||'Usuário';
-    bar.innerHTML=`<span class="aa-user" title="${String(display).replace(/"/g,'&quot;')}">${display}</span><button class="aa-logout">Sair</button>`;
-    pro.appendChild(bar);
-    bar.querySelector('.aa-logout').addEventListener('click',async()=>{await sb.auth.signOut();});
-    const footer=document.querySelector('.footer');
-    if(footer)footer.innerHTML='<b>ActivAnatomy</b> • Dinamometria & Mapeamento de Força';
-  };
-  const showApp=user=>{auth.style.display='none';main.style.display='';addAccountBar(user)};
-  const showAuth=()=>{document.querySelector('.aa-account')?.remove();main.style.display='none';auth.style.display='flex';setMode('login')};
-
-  submit.addEventListener('click',async()=>{
-    clearMsg();const e=email.value.trim(),p=password.value;
-    if(!e||!p){setMsg('Preencha e-mail e senha.');return}
-    if(p.length<6){setMsg('A senha precisa ter pelo menos 6 caracteres.');return}
-    submit.disabled=true;
-    try{
-      if(mode==='signup'){
-        const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{name:nameInput.value.trim()||e.split('@')[0]}}});
-        if(error)throw error;
-        if(data.session){showApp(data.user)}else setMsg('Conta criada. Confirme o e-mail que o Supabase enviou e depois entre aqui.','ok');
-      }else{
-        const {data,error}=await sb.auth.signInWithPassword({email:e,password:p});
-        if(error)throw error;showApp(data.user);
-      }
-    }catch(err){
-      const m=String(err?.message||err);
-      if(/Invalid login credentials/i.test(m))setMsg('E-mail ou senha incorretos.');
-      else if(/already registered|already been registered/i.test(m))setMsg('Esse e-mail já está cadastrado. Tente entrar.');
-      else setMsg('Não foi possível continuar: '+m);
-    }finally{submit.disabled=false}
-  });
-  password.addEventListener('keydown',e=>{if(e.key==='Enter')submit.click()});
-
-  sb.auth.onAuthStateChange((_event,session)=>{session?.user?showApp(session.user):showAuth()});
-  const {data:{session}}=await sb.auth.getSession();
-  session?.user?showApp(session.user):showAuth();
+  const auth=document.createElement('div');auth.className='aa-auth';auth.innerHTML=`<div class="aa-auth-card"><div class="aa-auth-brand">Activ<span>Anatomy</span></div><div class="aa-auth-sub">Dinamometria & Mapeamento de Força</div><div class="aa-tabs"><button class="aa-tab active" data-mode="login">Entrar</button><button class="aa-tab" data-mode="signup">Criar conta</button></div><div id="aaName" class="aa-field aa-name"><label>Nome</label><input id="aaNameInput" autocomplete="name" placeholder="Seu nome"></div><div class="aa-field"><label>E-mail</label><input id="aaEmail" type="email" autocomplete="email" placeholder="seu@email.com"></div><div class="aa-field"><label>Senha</label><input id="aaPassword" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres"></div><button id="aaSubmit" class="aa-submit">Entrar</button><div id="aaMsg" class="aa-msg"></div><div class="aa-creator">Criado por <b>Eduardo Casalinho Silva</b><br>Fisioterapeuta • CREFITO 437356-F</div></div>`;document.body.prepend(auth);
+  const tabs=[...auth.querySelectorAll('.aa-tab')],nameWrap=auth.querySelector('#aaName'),nameInput=auth.querySelector('#aaNameInput'),email=auth.querySelector('#aaEmail'),password=auth.querySelector('#aaPassword'),submit=auth.querySelector('#aaSubmit'),msg=auth.querySelector('#aaMsg');let mode='login';
+  const setMsg=(text,type='err')=>{msg.textContent=text;msg.className=`aa-msg show ${type}`},clearMsg=()=>{msg.textContent='';msg.className='aa-msg'},setMode=m=>{mode=m;clearMsg();tabs.forEach(t=>t.classList.toggle('active',t.dataset.mode===m));nameWrap.classList.toggle('show',m==='signup');submit.textContent=m==='signup'?'Criar minha conta':'Entrar';password.autocomplete=m==='signup'?'new-password':'current-password'};tabs.forEach(t=>t.addEventListener('click',()=>setMode(t.dataset.mode)));
+  const addAccountBar=user=>{document.querySelector('.aa-account')?.remove();const pro=document.querySelector('.pro');if(!pro)return;pro.innerHTML='';const bar=document.createElement('div');bar.className='aa-account';const display=user.email||'Usuário';bar.innerHTML=`<span class="aa-user" title="${String(display).replace(/"/g,'&quot;')}">${display}</span><button class="aa-logout">Sair</button>`;pro.appendChild(bar);bar.querySelector('.aa-logout').addEventListener('click',async()=>{await sb.auth.signOut()});const footer=document.querySelector('.footer');if(footer)footer.innerHTML='<b>ActivAnatomy</b> • Dinamometria & Mapeamento de Força'};
+  const showApp=user=>{auth.style.display='none';main.style.display='';addAccountBar(user)},showAuth=()=>{document.querySelector('.aa-account')?.remove();main.style.display='none';auth.style.display='flex';setMode('login')};
+  submit.addEventListener('click',async()=>{clearMsg();const e=email.value.trim(),p=password.value;if(!e||!p){setMsg('Preencha e-mail e senha.');return}if(p.length<6){setMsg('A senha precisa ter pelo menos 6 caracteres.');return}submit.disabled=true;try{if(mode==='signup'){const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{name:nameInput.value.trim()||e.split('@')[0]}}});if(error)throw error;if(data.session)showApp(data.user);else setMsg('Conta criada. Confirme o e-mail que o Supabase enviou e depois entre aqui.','ok')}else{const {data,error}=await sb.auth.signInWithPassword({email:e,password:p});if(error)throw error;showApp(data.user)}}catch(err){const m=String(err?.message||err);if(/Invalid login credentials/i.test(m))setMsg('E-mail ou senha incorretos.');else if(/already registered|already been registered/i.test(m))setMsg('Esse e-mail já está cadastrado. Tente entrar.');else setMsg('Não foi possível continuar: '+m)}finally{submit.disabled=false}});password.addEventListener('keydown',e=>{if(e.key==='Enter')submit.click()});sb.auth.onAuthStateChange((_event,session)=>{session?.user?showApp(session.user):showAuth()});const {data:{session}}=await sb.auth.getSession();session?.user?showApp(session.user):showAuth();
 })();
