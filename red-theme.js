@@ -3,6 +3,13 @@
  const css=`
  :root{--ink:#17191d!important;--muted:#6f737a!important;--brand:#b91f2f!important;--bg:#f5f5f6!important;--line:#e1e2e5!important;--green:#35aa67!important;--yellow:#e9a62f!important;--red:#db5651!important;--neutral:#d7dfdd!important}
  body{background:#f5f5f6!important;color:#17191d!important}
+ .hero{background:linear-gradient(135deg,#08090b 0%,#111318 68%,#2a0b10 100%)!important;border:1px solid #2b2e34!important;box-shadow:0 12px 30px #0000002e!important;color:#fff!important}
+ .hero h1,.hero h1 span,.hero .pro,.hero .pro b{color:#fff!important}
+ .hero h1::after{content:'.';color:#ef3347!important;font-weight:900!important}
+ .hero p{color:#d8dade!important}
+ .hero .aa-nav-btn{background:#17191e!important;border-color:#3a3d43!important;color:#f5f5f5!important}
+ .hero .aa-nav-btn:hover{background:#231419!important;border-color:#8e2935!important}
+ .hero .aa-nav-btn.active{background:#55151e!important;border-color:#ef3347!important;color:#fff!important;box-shadow:0 0 0 1px #ef334733 inset!important}
  .card,.aa-patients,.aao-page,.aa-modal,.aa-auth-card{border-color:#e1e2e5!important;box-shadow:0 8px 24px #11131810!important}
  .card h2,.aa-head h2,.aa-head h3,.aao-head h2{color:#17191d!important}
  .btn,.aa-primary,.aao-btn,.aa-submit{background:linear-gradient(180deg,#c82b3b,#a71727)!important;color:#fff!important;box-shadow:0 6px 16px #9e16252b!important}
