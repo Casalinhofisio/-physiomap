@@ -3,17 +3,16 @@
   const css=document.createElement('style');
   css.id='aa-auth-readability';
   css.textContent=`
-    .aa-auth-card{width:min(510px,100%)!important;padding:36px 36px 32px!important}
-    .aa-auth-brand{font-size:42px!important;line-height:1.05!important;letter-spacing:-1.4px!important}
-    .aa-auth-sub{font-size:17px!important;line-height:1.4!important;margin:8px 0 24px!important;color:#fff!important;font-weight:700!important}
-    .aa-tabs{margin-bottom:18px!important;padding:5px!important}.aa-tab{padding:13px 10px!important;font-size:16px!important;font-weight:800!important}
-    .aa-google{padding:15px 16px!important;font-size:17px!important;min-height:54px!important;font-weight:800!important}.aa-g{font-size:24px!important}.aa-or{font-size:14px!important;margin:17px 0!important;color:#fff!important}
-    .aa-field{margin:14px 0!important}.aa-field label{font-size:14px!important;margin-bottom:7px!important;color:#fff!important;font-weight:800!important}.aa-field input{padding:16px!important;font-size:17px!important;min-height:54px!important;border-radius:13px!important}
-    .aa-submit{padding:16px!important;font-size:17px!important;min-height:54px!important;margin-top:10px!important}.aa-forgot{font-size:15px!important;padding-top:12px!important}.aa-creator{font-size:13px!important;line-height:1.55!important;color:#fff!important}
-    .aa-commercial-mini{display:grid!important;grid-template-columns:1fr!important;gap:10px!important;margin:5px 0 21px!important}
-    .aa-commercial-mini span{display:flex!important;align-items:center!important;width:100%!important;box-sizing:border-box!important;font-size:16px!important;line-height:1.3!important;padding:12px 14px!important;background:#fff!important;color:#000!important;border:2px solid #d7dfdd!important;border-radius:12px!important;font-weight:900!important;white-space:normal!important;text-shadow:none!important}
-    .aa-auth-card:before{font-size:13px!important;padding:9px 12px!important;letter-spacing:.3px!important;color:#000!important;background:#fff!important;border:2px solid #d7dfdd!important;font-weight:1000!important}
-    @media(max-width:560px){.aa-auth-card{padding:27px 22px!important}.aa-auth-brand{font-size:35px!important}.aa-auth-sub{font-size:15px!important}.aa-tab{font-size:15px!important}.aa-google,.aa-field input,.aa-submit{font-size:16px!important}.aa-commercial-mini span{font-size:14px!important;padding:10px 12px!important}}
+    .aa-auth-card{width:min(430px,100%)!important;padding:26px 30px 24px!important;box-sizing:border-box!important}
+    .aa-auth-brand{font-size:36px!important;line-height:1.05!important;letter-spacing:-1.2px!important}
+    .aa-auth-sub{font-size:14px!important;line-height:1.35!important;margin:6px 0 16px!important;color:#fff!important;font-weight:650!important}
+    .aa-tabs{margin-bottom:13px!important;padding:4px!important}.aa-tab{padding:10px 8px!important;font-size:14px!important;font-weight:800!important}
+    .aa-google{padding:11px 14px!important;font-size:15px!important;min-height:48px!important;font-weight:800!important}.aa-g{font-size:21px!important}.aa-or{font-size:12px!important;margin:12px 0!important;color:#fff!important}
+    .aa-field{margin:10px 0!important}.aa-field label{font-size:12px!important;margin-bottom:5px!important;color:#fff!important;font-weight:800!important}.aa-field input{padding:12px 14px!important;font-size:15px!important;min-height:48px!important;border-radius:12px!important}
+    .aa-submit{padding:12px!important;font-size:15px!important;min-height:48px!important;margin-top:8px!important}.aa-forgot{font-size:13px!important;padding-top:9px!important}.aa-creator{font-size:11px!important;line-height:1.45!important;color:#fff!important}
+    .aa-commercial-mini,.aa-auth-card:before{display:none!important;content:none!important}
+    @media(min-width:861px){.aa-commercial-shell{grid-template-columns:minmax(0,1.35fr) 430px!important;gap:58px!important;align-items:center!important}.aa-auth-card{max-height:760px!important}.aa-commercial-hero{padding-right:12px!important}}
+    @media(max-width:560px){.aa-auth-card{width:100%!important;padding:25px 21px!important}.aa-auth-brand{font-size:34px!important}.aa-auth-sub{font-size:14px!important}.aa-tab{font-size:14px!important}.aa-google,.aa-field input,.aa-submit{font-size:15px!important}}
   `;
   document.head.appendChild(css);
 })();
